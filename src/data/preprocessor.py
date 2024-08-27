@@ -1,6 +1,9 @@
+# src/data/preprocessor.py
+
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
+from scipy.sparse import csr_matrix
 
 def preprocess_data(books_rating_df, books_data_df, test_size=0.2):
     # Merge ratings with book info
@@ -19,4 +22,9 @@ def preprocess_data(books_rating_df, books_data_df, test_size=0.2):
     return train_data, test_data, le_user, le_book
 
 def create_user_item_matrix(data):
-    return data.pivot(index='User_id', columns='Id', values='review/score').fillna(0)
+    users = data['user_id_encoded']
+    items = data['book_id_encoded']
+    ratings = data['review/score']
+    shape = (users.max() + 1, items.max() + 1)
+    
+    return csr_matrix((ratings, (users, items)), shape=shape)
