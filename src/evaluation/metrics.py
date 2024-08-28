@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 import torch
+from tqdm import tqdm
 
 def calculate_mse(predictions, targets):
     return mean_squared_error(targets, predictions)
@@ -14,27 +15,49 @@ def calculate_mae(predictions, targets):
 def calculate_ndcg(predictions, targets, k=10):
     def dcg_at_k(r, k):
         r = np.asfarray(r)[:k]
-        return np.sum(r / np.log2(np.arange(2, r.size + 2)))
+        if r.size:
+            return np.sum(np.subtract(np.power(2, r), 1) / np.log2(np.arange(2, r.size + 2)))
+        return 0.
 
-    def ndcg_at_k(predictions, targets, k):
-        assert len(predictions) == len(targets)
-        predicted_ranking = np.argsort(predictions)[::-1]
-        ideal_ranking = np.argsort(targets)[::-1]
-        dcg = dcg_at_k(targets[predicted_ranking], k)
-        idcg = dcg_at_k(targets[ideal_ranking], k)
-        return dcg / idcg if idcg > 0 else 0
+    predictions = np.array(predictions)
+    targets = np.array(targets)
 
-    return np.mean([ndcg_at_k(p, t, k) for p, t in zip(predictions, targets)])
+    assert predictions.shape == targets.shape
 
-def evaluate_model(model, user_ids, item_ids, ratings):
+    # Sort predictions and targets in descending order
+    sorted_indices = np.argsort(predictions)[::-1]
+    sorted_predictions = predictions[sorted_indices]
+    sorted_targets = targets[sorted_indices]
+
+    # Calculate DCG and IDCG
+    dcg = dcg_at_k(sorted_targets, k)
+    idcg = dcg_at_k(np.sort(targets)[::-1], k)
+
+    # Avoid division by zero
+    if idcg == 0:
+        return 0.
+
+    return dcg / idcg
+
+def evaluate_model(model, dataloader, device):
     model.model.eval()
-    with torch.no_grad():
-        predictions = model.predict(user_ids, item_ids).numpy()
+    predictions = []
+    targets = []
     
-    mse = calculate_mse(predictions, ratings.numpy())
-    rmse = calculate_rmse(predictions, ratings.numpy())
-    mae = calculate_mae(predictions, ratings.numpy())
-    ndcg = calculate_ndcg(predictions, ratings.numpy())
+    with torch.no_grad():
+        for batch in tqdm(dataloader, desc="Evaluating"):
+            user_ids, item_ids, ratings = [x.to(device) for x in batch]
+            batch_predictions = model.predict(user_ids, item_ids)
+            predictions.extend(batch_predictions.cpu().numpy())
+            targets.extend(ratings.cpu().numpy())
+    
+    predictions = np.array(predictions)
+    targets = np.array(targets)
+    
+    mse = calculate_mse(predictions, targets)
+    rmse = calculate_rmse(predictions, targets)
+    mae = calculate_mae(predictions, targets)
+    ndcg = calculate_ndcg(predictions, targets)
     
     return {
         'MSE': mse,
