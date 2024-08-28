@@ -28,10 +28,13 @@ def load_data():
     return train_data, test_data, user_item_matrix, user_encoder, book_encoder
 
 def main():
+    print("Starting data loading...")
     train_data, test_data, user_item_matrix, user_encoder, book_encoder = load_data()
+    print(f"Data loaded. Train shape: {train_data.shape}, Test shape: {test_data.shape}")
 
     num_users = len(user_encoder.classes_)
     num_items = len(book_encoder.classes_)
+    print(f"Number of users: {num_users}, Number of items: {num_items}")
 
     print("Preparing tensors...")
     train_user_ids = torch.LongTensor(train_data['user_id_encoded'].values)
@@ -46,22 +49,29 @@ def main():
     # Create datasets
     train_dataset = TensorDataset(train_user_ids, train_item_ids, train_ratings)
     test_dataset = TensorDataset(test_user_ids, test_item_ids, test_ratings)
+    print("Datasets created.")
 
     # Create dataloaders
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
+    print("DataLoaders created.")
 
     # Device handling
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
 
+    print("Initializing model...")
     model = CollaborativeFiltering(num_users, num_items, EMBEDDING_DIM, LEARNING_RATE).to(device)
+    print("Model initialized.")
 
+    print("Starting training loop...")
     for epoch in range(NUM_EPOCHS):
+        print(f"Starting epoch {epoch+1}/{NUM_EPOCHS}")
         train_loss = model.train_epoch(train_loader, device)
 
         print(f'Epoch [{epoch+1}/{NUM_EPOCHS}], Train Loss: {train_loss:.4f}')
         
+        print("Performing quick evaluation...")
         # Evaluate on a subset of test data for quicker feedback
         quick_metrics = evaluate_model(model, list(test_loader)[:10], device)
         print("Quick evaluation metrics:")

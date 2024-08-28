@@ -31,7 +31,10 @@ class CollaborativeFiltering:
     def train_epoch(self, train_loader, device):
         self.model.train()
         total_loss = 0
-        for batch in train_loader:
+        num_batches = len(train_loader)
+        for i, batch in enumerate(train_loader):
+            if i % 100 == 0:
+                print(f"Training batch {i+1}/{num_batches}")
             user_ids, item_ids, ratings = [x.to(device) for x in batch]
             self.optimizer.zero_grad()
             predictions = self.model(user_ids, item_ids)
@@ -39,7 +42,7 @@ class CollaborativeFiltering:
             loss.backward()
             self.optimizer.step()
             total_loss += loss.item()
-        return total_loss / len(train_loader)
+        return total_loss / num_batches
 
     def predict(self, user_ids, item_ids):
         self.model.eval()
