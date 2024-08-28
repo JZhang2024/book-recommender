@@ -43,22 +43,22 @@ def evaluate_model(model, dataloader, device):
     model.model.eval()
     predictions = []
     targets = []
-    
+
     with torch.no_grad():
         for batch in tqdm(dataloader, desc="Evaluating"):
             user_ids, item_ids, ratings = [x.to(device) for x in batch]
             batch_predictions = model.predict(user_ids, item_ids)
             predictions.extend(batch_predictions.cpu().numpy())
             targets.extend(ratings.cpu().numpy())
-    
+
     predictions = np.array(predictions)
     targets = np.array(targets)
-    
+
     mse = calculate_mse(predictions, targets)
     rmse = calculate_rmse(predictions, targets)
     mae = calculate_mae(predictions, targets)
     ndcg = calculate_ndcg(predictions, targets)
-    
+
     return {
         'MSE': mse,
         'RMSE': rmse,
