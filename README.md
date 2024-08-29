@@ -55,9 +55,13 @@ pip install -r requirements.txt
 1. Update the `config.py` file with your desired parameters and file paths.
 
 2. Run the preprocessing script to prepare the data:
+```
 python src/preprocess_main.py
+```
 3. Train the model:
+```
 python src/train.py
+```
 
 ## Model
 
