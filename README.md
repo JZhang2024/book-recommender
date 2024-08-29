@@ -44,11 +44,11 @@ book_recommender/
 git clone https://github.com/JZhang2024/book-recommender.git
 cd book-recommender
 ```
-1. Install the required packages:
+2. Install the required packages:
 ```
 pip install -r requirements.txt
 ```
-1. Download the dataset from Kaggle and place the CSV files in the `data/raw/` directory.
+3. Download the dataset from Kaggle and place the CSV files in the `data/raw/` directory.
 
 ## Usage
 
