@@ -32,6 +32,9 @@ def load_data():
 
     return train_data, test_data, user_item_matrix, user_encoder, book_encoder
 
+def save_model(model, filepath):
+    torch.save(model.state_dict(), filepath)
+
 def main():
     print("Starting data loading...")
     train_data, test_data, user_item_matrix, user_encoder, book_encoder = load_data()
@@ -90,6 +93,8 @@ def main():
     print("Final Test Metrics:")
     for metric_name, metric_value in final_metrics.items():
         print(f'{metric_name}: {metric_value:.4f}')
+
+    return model  # Return the trained model
 
 if __name__ == "__main__":
     main()
