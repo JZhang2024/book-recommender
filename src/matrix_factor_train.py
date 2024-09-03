@@ -22,8 +22,8 @@ def load_data():
     test_data = pd.read_csv(TEST_DATA_FILE)
 
     # Reduce dataset size for local training/testing
-    train_data = train_data.sample(frac=0.05, random_state=42)
-    test_data = test_data.sample(frac=0.05, random_state=42)
+    train_data = train_data.sample(frac=0.25, random_state=42)
+    test_data = test_data.sample(frac=0.25, random_state=42)
 
     user_item_matrix = sparse.load_npz(USER_ITEM_MATRIX_FILE)
     user_encoder = pd.read_pickle(USER_ENCODER_FILE)
