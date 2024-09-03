@@ -2,11 +2,10 @@ import torch
 from torch.utils.data import TensorDataset, DataLoader
 import pandas as pd
 from scipy import sparse
-from models.collaborative_filtering import CollaborativeFiltering
+from models.neural_collaborative_filtering import NeuralCollaborativeFiltering
 from evaluation.metrics import evaluate_model
 import sys
 import os
-from tqdm import tqdm
 
 # Add the project root directory to the Python path
 root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -20,6 +19,11 @@ def load_data():
     print("Loading data...")
     train_data = pd.read_csv(TRAIN_DATA_FILE)
     test_data = pd.read_csv(TEST_DATA_FILE)
+    
+    # Reduce dataset size for testing
+    train_data = train_data.sample(frac=0.05, random_state=42)
+    test_data = test_data.sample(frac=0.05, random_state=42)
+    
     user_item_matrix = sparse.load_npz(USER_ITEM_MATRIX_FILE)
     user_encoder = pd.read_pickle(USER_ENCODER_FILE)
     book_encoder = pd.read_pickle(BOOK_ENCODER_FILE)
@@ -28,9 +32,7 @@ def load_data():
     return train_data, test_data, user_item_matrix, user_encoder, book_encoder
 
 def main():
-    print("Starting data loading...")
     train_data, test_data, user_item_matrix, user_encoder, book_encoder = load_data()
-    print(f"Data loaded. Train shape: {train_data.shape}, Test shape: {test_data.shape}")
 
     num_users = len(user_encoder.classes_)
     num_items = len(book_encoder.classes_)
@@ -61,7 +63,7 @@ def main():
     print(f"Using device: {device}")
 
     print("Initializing model...")
-    model = CollaborativeFiltering(num_users, num_items, EMBEDDING_DIM, LEARNING_RATE).to(device)
+    model = NeuralCollaborativeFiltering(num_users, num_items, EMBEDDING_DIM, [128, 64, 32, 16], LEARNING_RATE).to(device)
     print("Model initialized.")
 
     print("Starting training loop...")
