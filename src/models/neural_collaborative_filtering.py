@@ -26,7 +26,8 @@ class NCF(nn.Module):
             vector = self.activation(layer(vector))
         
         output = self.output_layer(vector)
-        return output.squeeze(-1)
+        output = torch.sigmoid(output.squeeze(-1))  # Sigmoid activation
+        return output * 5.0  # Scale to 0-5 range
 
 class NeuralCollaborativeFiltering:
     def __init__(self, num_users, num_items, embedding_dim=64, layers=[128, 64, 32, 16], learning_rate=0.001):
