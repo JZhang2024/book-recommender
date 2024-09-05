@@ -45,7 +45,7 @@ def evaluate_model(model, dataloader, device):
     targets = []
 
     with torch.no_grad():
-        for batch in tqdm(dataloader, desc="Evaluating"):
+        for batch in tqdm(dataloader, desc="Evaluating", leave=False):
             user_ids, item_ids, ratings = [x.to(device) for x in batch]
             batch_predictions = model.predict(user_ids, item_ids)
             predictions.extend(batch_predictions.cpu().numpy())

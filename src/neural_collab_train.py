@@ -37,12 +37,23 @@ def train_model(model, train_loader, test_loader, device, num_epochs, patience=5
     early_stopping_counter = 0
     
     for epoch in range(num_epochs):
-        print(f"Starting epoch {epoch+1}/{num_epochs}")
-        train_loss = model.train_epoch(train_loader, device)
-
-        print(f'Epoch [{epoch+1}/{num_epochs}], Train Loss: {train_loss:.4f}')
+        print(f"Epoch [{epoch+1}/{num_epochs}]")
         
-        print("Performing evaluation...")
+        # Training
+        model.train()
+        train_loss = 0
+        train_pbar = tqdm(train_loader, desc="Training", leave=False)
+        for batch in train_pbar:
+            user_ids, item_ids, ratings = [x.to(device) for x in batch]
+            loss = model.train_step(user_ids, item_ids, ratings)
+            train_loss += loss
+            train_pbar.set_postfix({'loss': f'{loss:.4f}'})
+        
+        train_loss /= len(train_loader)
+        print(f'Train Loss: {train_loss:.4f}')
+        
+        # Evaluation
+        print("Evaluating...")
         metrics = evaluate_model(model, test_loader, device)
         val_loss = metrics['MSE']
         
@@ -53,7 +64,7 @@ def train_model(model, train_loader, test_loader, device, num_epochs, patience=5
         if val_loss < best_loss:
             best_loss = val_loss
             early_stopping_counter = 0
-            # Save the best model
+            print("Saving best model...")
             torch.save(model.state_dict(), 'best_ncf_model.pth')
         else:
             early_stopping_counter += 1
@@ -64,7 +75,7 @@ def train_model(model, train_loader, test_loader, device, num_epochs, patience=5
         
         print()
     
-    # Load the best model
+    print("Loading best model...")
     model.load_state_dict(torch.load('best_ncf_model.pth'))
     return model
 
