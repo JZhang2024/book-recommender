@@ -2,8 +2,8 @@ import torch
 from torch.utils.data import TensorDataset, DataLoader
 import pandas as pd
 from scipy import sparse
-from models.neural_collaborative_filtering import NeuralCollaborativeFiltering
-from evaluation.metrics import evaluate_model
+from .models.neural_collaborative_filtering import NeuralCollaborativeFiltering
+from .evaluation.metrics import evaluate_model
 import sys
 import os
 from tqdm import tqdm
@@ -15,7 +15,6 @@ sys.path.append(root_dir)
 from config import (TRAIN_DATA_FILE, TEST_DATA_FILE, USER_ITEM_MATRIX_FILE, 
                     USER_ENCODER_FILE, BOOK_ENCODER_FILE, 
                     EMBEDDING_DIM, LEARNING_RATE, BATCH_SIZE, NUM_EPOCHS)
-
 def load_data():
     print("Loading data...")
     train_data = pd.read_csv(TRAIN_DATA_FILE)
