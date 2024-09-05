@@ -39,7 +39,7 @@ def train_model(model, train_loader, test_loader, device, num_epochs, patience=5
         print(f"Epoch [{epoch+1}/{num_epochs}]")
         
         # Training
-        model.train()
+        model.model.train()
         train_loss = 0
         train_pbar = tqdm(train_loader, desc="Training", leave=False)
         for batch in train_pbar:
@@ -64,7 +64,7 @@ def train_model(model, train_loader, test_loader, device, num_epochs, patience=5
             best_loss = val_loss
             early_stopping_counter = 0
             print("Saving best model...")
-            torch.save(model.state_dict(), 'best_ncf_model.pth')
+            torch.save(model.model.state_dict(), 'best_ncf_model.pth')
         else:
             early_stopping_counter += 1
         
@@ -75,7 +75,7 @@ def train_model(model, train_loader, test_loader, device, num_epochs, patience=5
         print()
     
     print("Loading best model...")
-    model.load_state_dict(torch.load('best_ncf_model.pth'))
+    model.model.load_state_dict(torch.load('best_ncf_model.pth'))
     return model
 
 def main():

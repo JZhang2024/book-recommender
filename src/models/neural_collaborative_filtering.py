@@ -35,21 +35,22 @@ class NeuralCollaborativeFiltering:
         self.criterion = nn.MSELoss()
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate)
 
-    def train_epoch(self, train_loader, device):
+    def train_step(self, user_ids, item_ids, ratings):
         self.model.train()
+        self.optimizer.zero_grad()
+        predictions = self.model(user_ids, item_ids)
+        loss = self.criterion(predictions, ratings)
+        loss.backward()
+        self.optimizer.step()
+        return loss.item()
+
+    def train_epoch(self, train_loader, device):
         total_loss = 0
-        num_batches = len(train_loader)
-        for i, batch in enumerate(train_loader):
-            if i % 100 == 0:
-                print(f"Training batch {i+1}/{num_batches}")
+        for batch in train_loader:
             user_ids, item_ids, ratings = [x.to(device) for x in batch]
-            self.optimizer.zero_grad()
-            predictions = self.model(user_ids, item_ids)
-            loss = self.criterion(predictions, ratings)
-            loss.backward()
-            self.optimizer.step()
-            total_loss += loss.item()
-        return total_loss / num_batches
+            loss = self.train_step(user_ids, item_ids, ratings)
+            total_loss += loss
+        return total_loss / len(train_loader)
 
     def predict(self, user_ids, item_ids):
         self.model.eval()
