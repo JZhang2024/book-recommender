@@ -39,16 +39,7 @@ def train_model(model, train_loader, test_loader, device, num_epochs, patience=5
         print(f"Epoch [{epoch+1}/{num_epochs}]")
         
         # Training
-        model.model.train()
-        train_loss = 0
-        train_pbar = tqdm(train_loader, desc="Training", leave=False)
-        for batch in train_pbar:
-            user_ids, item_ids, ratings = [x.to(device) for x in batch]
-            loss = model.train_step(user_ids, item_ids, ratings)
-            train_loss += loss
-            train_pbar.set_postfix({'loss': f'{loss:.4f}'})
-        
-        train_loss /= len(train_loader)
+        train_loss = model.train_epoch(train_loader, device)
         print(f'Train Loss: {train_loss:.4f}')
         
         # Evaluation

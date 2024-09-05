@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import tqdm
 
 class NCF(nn.Module):
     def __init__(self, num_users, num_items, embedding_dim=64, layers=[128, 64, 32, 16]):
@@ -45,11 +46,14 @@ class NeuralCollaborativeFiltering:
         return loss.item()
 
     def train_epoch(self, train_loader, device):
+        self.model.train()
         total_loss = 0
-        for batch in train_loader:
+        train_pbar = tqdm(train_loader, desc="Training", leave=False)
+        for batch in train_pbar:
             user_ids, item_ids, ratings = [x.to(device) for x in batch]
             loss = self.train_step(user_ids, item_ids, ratings)
             total_loss += loss
+            train_pbar.set_postfix({'loss': f'{loss:.4f}'})
         return total_loss / len(train_loader)
 
     def predict(self, user_ids, item_ids):
