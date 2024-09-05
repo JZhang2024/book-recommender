@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from tqdm.auto import tqdm
 
 class MatrixFactorization(nn.Module):
     def __init__(self, num_users, num_items, embedding_dim=100):
@@ -39,9 +40,8 @@ class CollaborativeFiltering:
         self.model.train()
         total_loss = 0
         num_batches = len(train_loader)
-        for i, batch in enumerate(train_loader):
-            if i % 100 == 0:
-                print(f"Training batch {i+1}/{num_batches}")
+        train_pbar = tqdm(train_loader, desc="Training", leave=False)
+        for batch in train_pbar:
             user_ids, item_ids, ratings = [x.to(device) for x in batch]
             self.optimizer.zero_grad()
             predictions = self.model(user_ids, item_ids)

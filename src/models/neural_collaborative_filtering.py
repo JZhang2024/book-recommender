@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-import tqdm
+from tqdm.auto import tqdm
 
 class NCF(nn.Module):
     def __init__(self, num_users, num_items, embedding_dim=64, layers=[128, 64, 32, 16]):
@@ -37,7 +37,6 @@ class NeuralCollaborativeFiltering:
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate)
 
     def train_step(self, user_ids, item_ids, ratings):
-        self.model.train()
         self.optimizer.zero_grad()
         predictions = self.model(user_ids, item_ids)
         loss = self.criterion(predictions, ratings)
