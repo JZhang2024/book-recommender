@@ -87,6 +87,8 @@ def main():
     print("Final Test Metrics:")
     for metric_name, metric_value in final_metrics.items():
         print(f'{metric_name}: {metric_value:.4f}')
+    
+    return model
 
 if __name__ == "__main__":
     main()
