@@ -6,6 +6,7 @@ from models.neural_collaborative_filtering import NeuralCollaborativeFiltering
 from evaluation.metrics import evaluate_model
 import sys
 import os
+from tqdm import tqdm
 
 # Add the project root directory to the Python path
 root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -30,6 +31,42 @@ def load_data():
     print("Data loaded successfully.")
 
     return train_data, test_data, user_item_matrix, user_encoder, book_encoder
+
+def train_model(model, train_loader, test_loader, device, num_epochs, patience=5):
+    best_loss = float('inf')
+    early_stopping_counter = 0
+    
+    for epoch in range(num_epochs):
+        print(f"Starting epoch {epoch+1}/{num_epochs}")
+        train_loss = model.train_epoch(train_loader, device)
+
+        print(f'Epoch [{epoch+1}/{num_epochs}], Train Loss: {train_loss:.4f}')
+        
+        print("Performing evaluation...")
+        metrics = evaluate_model(model, test_loader, device)
+        val_loss = metrics['MSE']
+        
+        print("Evaluation metrics:")
+        for metric_name, metric_value in metrics.items():
+            print(f'{metric_name}: {metric_value:.4f}')
+        
+        if val_loss < best_loss:
+            best_loss = val_loss
+            early_stopping_counter = 0
+            # Save the best model
+            torch.save(model.state_dict(), 'best_ncf_model.pth')
+        else:
+            early_stopping_counter += 1
+        
+        if early_stopping_counter >= patience:
+            print(f"Early stopping triggered after {epoch+1} epochs")
+            break
+        
+        print()
+    
+    # Load the best model
+    model.load_state_dict(torch.load('best_ncf_model.pth'))
+    return model
 
 def main():
     train_data, test_data, user_item_matrix, user_encoder, book_encoder = load_data()
@@ -67,22 +104,9 @@ def main():
     print("Model initialized.")
 
     print("Starting training loop...")
-    for epoch in range(NUM_EPOCHS):
-        print(f"Starting epoch {epoch+1}/{NUM_EPOCHS}")
-        train_loss = model.train_epoch(train_loader, device)
-
-        print(f'Epoch [{epoch+1}/{NUM_EPOCHS}], Train Loss: {train_loss:.4f}')
-        
-        print("Performing quick evaluation...")
-        # Evaluate on a subset of test data for quicker feedback
-        quick_metrics = evaluate_model(model, list(test_loader)[:10], device)
-        print("Quick evaluation metrics:")
-        for metric_name, metric_value in quick_metrics.items():
-            print(f'{metric_name}: {metric_value:.4f}')
-        print()
+    model = train_model(model, train_loader, test_loader, device, NUM_EPOCHS)
 
     print("Training completed. Performing final evaluation...")
-    # Final evaluation
     final_metrics = evaluate_model(model, test_loader, device)
     print("Final Test Metrics:")
     for metric_name, metric_value in final_metrics.items():
