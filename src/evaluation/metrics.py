@@ -36,7 +36,27 @@ def calculate_ndcg(predictions, targets, k=10):
 
     return np.mean(ndcgs)
 
-def evaluate_model(model, dataloader, device):
+def precision_at_k(predictions, targets, k=10):
+    # Sort predictions in descending order
+    sorted_indices = np.argsort(predictions)[::-1]
+    # Get top k predictions
+    top_k_indices = sorted_indices[:k]
+    # Count number of relevant items in top k
+    num_relevant = np.sum(targets[top_k_indices] > 0)
+    return num_relevant / k
+
+def recall_at_k(predictions, targets, k=10):
+    # Sort predictions in descending order
+    sorted_indices = np.argsort(predictions)[::-1]
+    # Get top k predictions
+    top_k_indices = sorted_indices[:k]
+    # Count number of relevant items in top k
+    num_relevant_in_top_k = np.sum(targets[top_k_indices] > 0)
+    # Count total number of relevant items
+    total_relevant = np.sum(targets > 0)
+    return num_relevant_in_top_k / total_relevant if total_relevant > 0 else 0
+
+def evaluate_model(model, dataloader, device, k=10):
     model.model.eval()
     all_predictions = []
     all_targets = []
@@ -67,15 +87,22 @@ def evaluate_model(model, dataloader, device):
         user_predictions[user].append(pred)
         user_targets[user].append(target)
 
-    # Calculate NDCG for each user and take the mean
-    ndcg = calculate_ndcg(
-        [np.array(user_predictions[u]) for u in user_predictions],
-        [np.array(user_targets[u]) for u in user_targets]
-    )
+    # Calculate NDCG, Precision, and Recall for each user and take the mean
+    ndcgs = []
+    precisions = []
+    recalls = []
+    for user in user_predictions:
+        user_preds = np.array(user_predictions[user])
+        user_targs = np.array(user_targets[user])
+        ndcgs.append(calculate_ndcg([user_preds], [user_targs], k)[0])
+        precisions.append(precision_at_k(user_preds, user_targs, k))
+        recalls.append(recall_at_k(user_preds, user_targs, k))
 
     return {
         'MSE': mse,
         'RMSE': rmse,
         'MAE': mae,
-        'NDCG@10': ndcg
+        'NDCG@{}'.format(k): np.mean(ndcgs),
+        'Precision@{}'.format(k): np.mean(precisions),
+        'Recall@{}'.format(k): np.mean(recalls)
     }

@@ -6,7 +6,6 @@ from .models.neural_collaborative_filtering import NeuralCollaborativeFiltering
 from .evaluation.metrics import evaluate_model
 import sys
 import os
-from tqdm import tqdm
 
 # Add the project root directory to the Python path
 root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -21,8 +20,8 @@ def load_data():
     test_data = pd.read_csv(TEST_DATA_FILE)
     
     # Reduce dataset size for testing
-    train_data = train_data.sample(frac=0.05, random_state=42)
-    test_data = test_data.sample(frac=0.05, random_state=42)
+    train_data = train_data.sample(frac=0.25, random_state=42)
+    test_data = test_data.sample(frac=0.25, random_state=42)
     
     user_item_matrix = sparse.load_npz(USER_ITEM_MATRIX_FILE)
     user_encoder = pd.read_pickle(USER_ENCODER_FILE)
@@ -108,7 +107,7 @@ def main():
     model = train_model(model, train_loader, test_loader, device, NUM_EPOCHS)
 
     print("Training completed. Performing final evaluation...")
-    final_metrics = evaluate_model(model, test_loader, device)
+    final_metrics = evaluate_model(model, test_loader, device, k=10)
     print("Final Test Metrics:")
     for metric_name, metric_value in final_metrics.items():
         print(f'{metric_name}: {metric_value:.4f}')
