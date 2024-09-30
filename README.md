@@ -11,43 +11,51 @@ The project uses the [Amazon Books Reviews dataset](https://www.kaggle.com/datas
 book_recommender/
 ├── src/
 │   ├── models/
-│   │   ├── init.py
-│   │   └── collaborative_filtering.py
-|   ├── data/
-│   │   ├── init.py
+│   │   ├── __init__.py
+│   │   ├── collaborative_filtering.py
+│   │   └── neural_collaborative_filtering.py
+│   ├── data/
+│   │   ├── __init__.py
 │   │   ├── data_loader.py
 │   │   ├── preprocessor.py
 │   │   └── preprocess_main.py
 │   ├── evaluation/
-│   │   ├── init.py
+│   │   ├── __init__.py
 │   │   └── metrics.py
-│   └── train.py
+│   ├── matrix_factor_train.py
+│   └── neural_collab_train.py
 ├── data/
 │   ├── raw/
 │   └── processed/
+├── app.py
 ├── config.py
-└── requirements.txt
+├── environment.yml
+└── README.md
 ```
 
 ## Features
 
 - Data preprocessing and encoding
-- Implementation of a Matrix Factorization model using PyTorch
-- Training loop with batch processing
-- Evaluation metrics including MSE, RMSE, MAE, and NDCG@10
+- Implementation of Matrix Factorization and Neural Collaborative Filtering models using PyTorch
+- Training loops with batch processing for both models
+- Evaluation metrics including MSE, RMSE, MAE, NDCG@10, Precision@k, and Recall@k
 - Support for both CPU and GPU training
+- Flask web application for serving recommendations
 
 ## Installation
 
 1. Clone this repository:
 ```
-git clone https://github.com/JZhang2024/book-recommender.git
+git clone https://github.com/YourUsername/book-recommender.git
 cd book-recommender
 ```
-2. Install the required packages:
+
+2. Set up the Conda environment:
 ```
-pip install -r requirements.txt
+conda env create -f environment.yml
+conda activate book_recommender
 ```
+
 3. Download the dataset from Kaggle and place the CSV files in the `data/raw/` directory.
 
 ## Usage
@@ -56,30 +64,53 @@ pip install -r requirements.txt
 
 2. Run the preprocessing script to prepare the data:
 ```
-python src/preprocess_main.py
-```
-3. Train the model:
-```
-python src/train.py
+python src/data/preprocess_main.py
 ```
 
-## Model
+3. Train the models:
+   - For Matrix Factorization:
+     ```
+     python src/matrix_factor_train.py
+     ```
+   - For Neural Collaborative Filtering:
+     ```
+     python src/neural_collab_train.py
+     ```
 
-The current implementation uses a simple Matrix Factorization model, which can be found in `src/models/collaborative_filtering.py`. This model learns latent representations of users and items to predict ratings.
+4. Run the Flask application:
+```
+python app.py
+```
+
+## Models
+
+The project implements two collaborative filtering models:
+
+1. Matrix Factorization (`src/models/collaborative_filtering.py`): A simple matrix factorization model that learns latent representations of users and items to predict ratings.
+
+2. Neural Collaborative Filtering (`src/models/neural_collaborative_filtering.py`): A more advanced model that uses neural networks to learn non-linear interactions between users and items.
 
 ## Evaluation
 
-The model is evaluated using the following metrics:
+The models are evaluated using the following metrics:
 - Mean Squared Error (MSE)
 - Root Mean Squared Error (RMSE)
 - Mean Absolute Error (MAE)
 - Normalized Discounted Cumulative Gain (NDCG@10)
+- Precision@k
+- Recall@k
 
 Evaluation code can be found in `src/evaluation/metrics.py`.
 
+## Web Application
+
+The project includes a Flask web application (`app.py`) that provides an API for adding books to a user's reading list and getting personalized recommendations.
+
 ## Future Work
 
-- Implement more advanced models (e.g., Neural Collaborative Filtering)
+- Implement more advanced models (e.g., transformers-based recommenders)
 - Add cross-validation for more robust evaluation
 - Develop a user interface for interactive recommendations
 - Optimize for larger datasets and faster training
+- Implement A/B testing to compare different recommendation algorithms
+- Add support for content-based filtering using book metadata
